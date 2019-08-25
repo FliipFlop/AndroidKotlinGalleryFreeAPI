@@ -1,4 +1,4 @@
-package com.example.androidkotlingalleryfreeapi.ui.main
+package com.example.androidkotlingalleryfreeapi.view
 
 import android.content.Context
 import android.util.AttributeSet

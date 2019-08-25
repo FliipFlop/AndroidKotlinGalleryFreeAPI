@@ -5,10 +5,9 @@
     android:orientation="vertical">
 
 
-    <com.example.androidkotlingalleryfreeapi.ui.main.PhotoListItem
+    <ListView
+        android:id="@+id/lvPhotoItemList"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-    </com.example.androidkotlingalleryfreeapi.ui.main.PhotoListItem>
+        android:layout_height="match_parent"></ListView>
 
 </LinearLayout>

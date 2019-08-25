@@ -6,8 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.androidkotlingalleryfreeapi.R
+import kotlinx.android.synthetic.main.fragment_template.*
 
 class MainFragment : Fragment() {
+
+    private var photoListAdapter : PhotoListAdapter? = null
 
     companion object {
         fun newInstance(): MainFragment {
@@ -37,8 +40,13 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         // Do anythings
+        initListView()
+    }
+
+    private fun initListView() {
+        photoListAdapter = PhotoListAdapter()
+        lvPhotoItemList.adapter = photoListAdapter
     }
 
 
