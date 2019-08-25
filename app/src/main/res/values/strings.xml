@@ -2,4 +2,6 @@
     <string name="app_name">AndroidKotlinGalleryFreeAPI</string>
     <string name="drawer_open">Open Menu</string>
     <string name="drawer_close">Close Menu</string>
+
+    <string name="api_base_url">https://nuuneoi.com/courses/500px/</string>
 </resources>

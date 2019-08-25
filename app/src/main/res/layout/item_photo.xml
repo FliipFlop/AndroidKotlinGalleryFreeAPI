@@ -20,7 +20,7 @@
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/tvTitle"
+            android:id="@+id/tvName"
             style="@style/PhotoItemTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

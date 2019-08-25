@@ -3,13 +3,13 @@ package com.example.androidkotlingalleryfreeapi.view
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
+import com.bumptech.glide.Glide
 import com.example.androidkotlingalleryfreeapi.R
+import kotlinx.android.synthetic.main.item_photo.view.*
 
 class PhotoListItem @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
-
-    // var item in view group
 
     init {
         initInflater()
@@ -21,7 +21,7 @@ class PhotoListItem @JvmOverloads constructor(
     }
 
     private fun initInstance() {
-        // init var to view
+        // init view item
 
     }
 
@@ -38,5 +38,17 @@ class PhotoListItem @JvmOverloads constructor(
 
         // size of self --> all of view
         setMeasuredDimension(width , height)
+    }
+
+    fun setNameText(text : String) {
+        tvName.text = text
+    }
+
+    fun setDescriptionText(text : String) {
+        tvDescription.text = text
+    }
+
+    fun setImageURL(url : String) {
+        Glide.with(context).load(url).into(ivPhotoItem)
     }
 }
