@@ -4,4 +4,6 @@
     <color name="colorPrimaryDark">#009624</color>
     <color name="colorPrimaryLight">#5efc82</color>
     <color name="colorAccent">#D81B60</color>
+
+    <color name="colorBackgroundTextPhotoItem">#80000000</color>
 </resources>

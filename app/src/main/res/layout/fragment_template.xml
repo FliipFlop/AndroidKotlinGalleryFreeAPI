@@ -5,9 +5,10 @@
     android:orientation="vertical">
 
 
-    <TextView
-        android:id="@+id/tvFragmentTemplate"
-        android:text="FRAGMENT TEMPLATE"
+    <com.example.androidkotlingalleryfreeapi.ui.main.PhotoListItem
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
+
+    </com.example.androidkotlingalleryfreeapi.ui.main.PhotoListItem>
+
 </LinearLayout>
