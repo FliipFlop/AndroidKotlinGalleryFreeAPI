@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
+import android.widget.ListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -21,8 +22,8 @@ import retrofit2.Response
 
 class MainFragment : Fragment() {
 
-    private var photoListAdapter: PhotoListAdapter? = null
-    private var photoListManager: PhotoListManager? = null
+    private lateinit var photoListAdapter: PhotoListAdapter
+    private lateinit var photoListManager: PhotoListManager
     val applicationContext: Context? = Contextor.getInstance().getContext()
 
     companion object {
@@ -51,8 +52,8 @@ class MainFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_template, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onViewCreated(rootView: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(rootView, savedInstanceState)
         // Do anythings
         initPhotoListManager()
         initListView()
@@ -66,9 +67,8 @@ class MainFragment : Fragment() {
 
     private fun initListView() {
         photoListAdapter = PhotoListAdapter()
+
         lvPhotoItemList.adapter = photoListAdapter
-
-
         lvPhotoItemList.setOnScrollListener(object : AbsListView.OnScrollListener {
             override fun onScroll(
                 view: AbsListView?,
@@ -84,7 +84,6 @@ class MainFragment : Fragment() {
             }
 
         })
-
     }
 
 
@@ -101,18 +100,14 @@ class MainFragment : Fragment() {
     }
 
     private fun refreshData() {
-        if (photoListManager!!.getCount() == 0) {
+        if (photoListManager.getCount() == 0) {
             reloadData()
         } else {
             reloadDataNewer()
         }
     }
 
-    class PhotoListLoadCallback(
-        var swSwipeRefresh: SwipeRefreshLayout,
-        var applicationContext: Context,
-        var photoListManager: PhotoListManager,
-        var photoListAdapter: PhotoListAdapter,
+    inner class PhotoListLoadCallback(
         var mode: Int
     ) :
         Callback<PhotoItemCollectionDao> {
@@ -134,16 +129,42 @@ class MainFragment : Fragment() {
 
                 var dao: PhotoItemCollectionDao? = response.body()
 
+                var firstVisiblePosition: Int = 0
+                var c: View
+                var top: Int = 0
+
+                if (photoListManager.getCount() > 0) {
+                    firstVisiblePosition = lvPhotoItemList.firstVisiblePosition
+                    c = lvPhotoItemList.getChildAt(0)
+                    top = if (c == null) 0
+                    else c.top
+                }
+
+
                 if (mode == MODE_RELOAD_NEWER) {
-                    photoListManager?.insertDaoAtTopPosition(dao!!)
+                    photoListManager.insertDaoAtTopPosition(dao!!)
                     toastText = "RELOAD NEWER SUCCESS"
                 } else {
                     photoListManager.dao = dao
                     toastText = "LOAD SUCCESS"
                 }
 
-                photoListAdapter?.dao = photoListManager?.dao
+                photoListAdapter?.dao = photoListManager.dao
                 photoListAdapter?.notifyDataSetChanged()
+
+                if (mode == MODE_RELOAD_NEWER) {
+                    if (photoListManager.getCount() > 0) {
+                        var insertDaoSize: Int
+                        insertDaoSize =
+                            if (dao?.data != null && dao?.data!!.size != null) dao.data!!.size
+                            else 0
+
+                        photoListAdapter.increaseLastPosition(insertDaoSize)
+                        lvPhotoItemList.setSelectionFromTop(firstVisiblePosition + insertDaoSize, top)
+                    }
+                } else {
+
+                }
 
                 Toast.makeText(applicationContext, toastText, Toast.LENGTH_SHORT).show()
 
@@ -159,34 +180,20 @@ class MainFragment : Fragment() {
     }
 
     private fun reloadDataNewer() {
-        var maxId: Int = photoListManager!!.getMaximumID()!!
+        var maxId: Int = photoListManager.getMaximumID()!!
 
         var call: Call<PhotoItemCollectionDao>? =
             HttpManager.getInstance().getService()?.loadPhotoListAfterID(maxId)
 
         call?.enqueue(
-            PhotoListLoadCallback(
-                swSwipeRefresh,
-                applicationContext!!,
-                photoListManager!!,
-                photoListAdapter!!,
-                2
-            )
+            PhotoListLoadCallback(2)
         )
     }
 
     private fun reloadData() {
 
         var call = HttpManager.getInstance().getService()?.loadPhotoList()
-        call?.enqueue(
-            PhotoListLoadCallback(
-                swSwipeRefresh,
-                applicationContext!!,
-                photoListManager!!,
-                photoListAdapter!!,
-                1
-            )
-        )
+        call?.enqueue(PhotoListLoadCallback(1))
     }
 
 

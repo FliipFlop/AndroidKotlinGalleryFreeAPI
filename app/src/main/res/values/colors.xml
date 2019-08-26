@@ -6,4 +6,7 @@
     <color name="colorAccent">#D81B60</color>
 
     <color name="colorBackgroundTextPhotoItem">#80000000</color>
+
+    <color name="colorButtonNewPhotos">#039be5</color>
+    <color name="colorButtonNewPhotosSelected">#006db3</color>
 </resources>

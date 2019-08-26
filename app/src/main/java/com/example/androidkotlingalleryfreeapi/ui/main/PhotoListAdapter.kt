@@ -55,4 +55,8 @@ class PhotoListAdapter : BaseAdapter() {
         if (dao?.data == null) return 0
         return dao?.data?.size!!
     }
+
+    fun increaseLastPosition(amount : Int) {
+        lastPosition += amount
+    }
 }
