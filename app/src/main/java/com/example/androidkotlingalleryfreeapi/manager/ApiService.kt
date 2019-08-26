@@ -13,4 +13,7 @@ interface ApiService {
     @GET("list/after/{id}")
     fun loadPhotoListAfterID(@Path("id") id: Int): Call<PhotoItemCollectionDao>
 
+    @GET("list/before/{id}")
+    fun loadPhotoListBeforeID(@Path("id") id: Int): Call<PhotoItemCollectionDao>
+
 }

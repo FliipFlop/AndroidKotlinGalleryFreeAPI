@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.BaseAdapter
+import android.widget.ProgressBar
 import com.example.androidkotlingalleryfreeapi.R
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemDao
@@ -17,6 +18,14 @@ class PhotoListAdapter : BaseAdapter() {
     var lastPosition = -1
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+
+        if (position == count - 1) {
+            val item: ProgressBar
+
+            item = if (convertView != null) convertView as ProgressBar
+            else ProgressBar(parent?.context)
+            return item
+        }
 
         var item: PhotoListItem
 
@@ -50,13 +59,22 @@ class PhotoListAdapter : BaseAdapter() {
         return 0
     }
 
-    override fun getCount(): Int {
-        if (dao == null) return 0
-        if (dao?.data == null) return 0
-        return dao?.data?.size!!
+    override fun getViewTypeCount(): Int {
+        return 2
     }
 
-    fun increaseLastPosition(amount : Int) {
+    override fun getItemViewType(position: Int): Int {
+        if (position == count - 1) return 1
+        else return 0
+    }
+
+    override fun getCount(): Int {
+        if (dao == null) return 1
+        if (dao?.data == null) return 1
+        return dao?.data?.size!! + 1
+    }
+
+    fun increaseLastPosition(amount: Int) {
         lastPosition += amount
     }
 }

@@ -5,6 +5,7 @@ import com.example.androidkotlingalleryfreeapi.application.Contextor
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemDao
 import kotlin.math.max
+import kotlin.math.min
 
 class PhotoListManager {
 
@@ -17,6 +18,13 @@ class PhotoListManager {
         if (dao?.data == null) dao?.data = ArrayList<PhotoItemDao>()
 
         dao?.data?.addAll(0 , newDao.data!!)
+    }
+
+    fun insertDaoAtBottomPosition(newDao: PhotoItemCollectionDao) {
+        if (dao == null) dao = PhotoItemCollectionDao()
+        if (dao?.data == null) dao?.data = ArrayList<PhotoItemDao>()
+
+        dao?.data?.addAll(newDao.data!!.size , newDao.data!!)
     }
 
     fun getMaximumID(): Int? {
@@ -32,10 +40,24 @@ class PhotoListManager {
         return maxId
     }
 
+    fun getMinimumID(): Int? {
+        if (dao == null) return 0
+        if (dao!!.data == null) return 0
+        if (dao!!.data!!.isEmpty()) return 0
+
+        var minId: Int? = dao!!.data?.get(0)?.id
+
+        for (i in 1 until dao!!.data!!.size) {
+            minId = min(minId!!, dao!!.data!!.get(i).id)
+        }
+        return minId
+    }
+
     fun getCount() : Int {
         if (dao == null) return 0
         if (dao!!.data == null) return 0
 
         return dao!!.data!!.size
     }
+
 }

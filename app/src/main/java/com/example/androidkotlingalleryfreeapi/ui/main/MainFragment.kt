@@ -7,10 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.AbsListView
-import android.widget.ListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidkotlingalleryfreeapi.R
 import com.example.androidkotlingalleryfreeapi.application.Contextor
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
@@ -26,6 +24,8 @@ class MainFragment : Fragment() {
     private lateinit var photoListAdapter: PhotoListAdapter
     private lateinit var photoListManager: PhotoListManager
     val applicationContext: Context? = Contextor.getInstance().getContext()
+
+    var isLoadingMore: Boolean = false
 
     companion object {
         fun newInstance(): MainFragment {
@@ -86,6 +86,13 @@ class MainFragment : Fragment() {
                 totalItemCount: Int
             ) {
                 swSwipeRefresh.isEnabled = firstVisibleTeam == 0
+
+                if (firstVisibleTeam + visibleItemCount >= totalItemCount) {
+                    if (photoListManager.getCount() > 0) {
+                        // Load more photos
+                        loadMoreData()
+                    }
+                }
             }
 
             override fun onScrollStateChanged(p0: AbsListView?, p1: Int) {
@@ -121,8 +128,11 @@ class MainFragment : Fragment() {
 
         var MODE_RELOAD: Int = 1
         var MODE_RELOAD_NEWER: Int = 2
+        var MODE_LOAD_MORE: Int = 3
 
         override fun onFailure(call: Call<PhotoItemCollectionDao>, t: Throwable) {
+            if (mode == MODE_LOAD_MORE) isLoadingMore = false
+
             swSwipeRefresh.isRefreshing = false
             Toast.makeText(applicationContext, t.toString(), Toast.LENGTH_LONG).show()
         }
@@ -151,6 +161,10 @@ class MainFragment : Fragment() {
                 if (mode == MODE_RELOAD_NEWER) {
                     photoListManager.insertDaoAtTopPosition(dao!!)
                     toastText = "RELOAD NEWER SUCCESS"
+                } else if (mode == MODE_LOAD_MORE) {
+                    photoListManager.insertDaoAtBottomPosition(dao!!)
+                    isLoadingMore = false
+                    toastText = "LODE MORE SUCCESS"
                 } else {
                     photoListManager.dao = dao
                     toastText = "LOAD SUCCESS"
@@ -181,6 +195,8 @@ class MainFragment : Fragment() {
                 Toast.makeText(applicationContext, toastText, Toast.LENGTH_SHORT).show()
 
             } else {
+                if (mode == MODE_LOAD_MORE) isLoadingMore = false
+
                 Toast.makeText(
                     applicationContext,
                     response.errorBody()?.string(),
@@ -189,6 +205,13 @@ class MainFragment : Fragment() {
                     .show()
             }
         }
+    }
+
+
+    private fun reloadData() {
+
+        var call = HttpManager.getInstance().getService()?.loadPhotoList()
+        call?.enqueue(PhotoListLoadCallback(1))
     }
 
     private fun reloadDataNewer() {
@@ -202,10 +225,18 @@ class MainFragment : Fragment() {
         )
     }
 
-    private fun reloadData() {
+    private fun loadMoreData() {
+        if (isLoadingMore) return
+        isLoadingMore = true
 
-        var call = HttpManager.getInstance().getService()?.loadPhotoList()
-        call?.enqueue(PhotoListLoadCallback(1))
+        var minId: Int = photoListManager.getMinimumID()!!
+
+        var call: Call<PhotoItemCollectionDao>? =
+            HttpManager.getInstance().getService()?.loadPhotoListBeforeID(minId)
+
+        call?.enqueue(
+            PhotoListLoadCallback(3)
+        )
     }
 
     fun showButtonNewPhotos() {
