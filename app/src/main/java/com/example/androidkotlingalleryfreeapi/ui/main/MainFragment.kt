@@ -78,28 +78,8 @@ class MainFragment : Fragment() {
         photoListAdapter = PhotoListAdapter()
 
         lvPhotoItemList.adapter = photoListAdapter
-        lvPhotoItemList.setOnScrollListener(object : AbsListView.OnScrollListener {
-            override fun onScroll(
-                view: AbsListView?,
-                firstVisibleTeam: Int,
-                visibleItemCount: Int,
-                totalItemCount: Int
-            ) {
-                swSwipeRefresh.isEnabled = firstVisibleTeam == 0
 
-                if (firstVisibleTeam + visibleItemCount >= totalItemCount) {
-                    if (photoListManager.getCount() > 0) {
-                        // Load more photos
-                        loadMoreData()
-                    }
-                }
-            }
-
-            override fun onScrollStateChanged(p0: AbsListView?, p1: Int) {
-
-            }
-
-        })
+        lvPhotoItemList.setOnScrollListener(listViewScrollListener)
     }
 
 
@@ -120,93 +100,6 @@ class MainFragment : Fragment() {
             reloadDataNewer()
         }
     }
-
-    inner class PhotoListLoadCallback(
-        var mode: Int
-    ) :
-        Callback<PhotoItemCollectionDao> {
-
-        var MODE_RELOAD: Int = 1
-        var MODE_RELOAD_NEWER: Int = 2
-        var MODE_LOAD_MORE: Int = 3
-
-        override fun onFailure(call: Call<PhotoItemCollectionDao>, t: Throwable) {
-            if (mode == MODE_LOAD_MORE) isLoadingMore = false
-
-            swSwipeRefresh.isRefreshing = false
-            Toast.makeText(applicationContext, t.toString(), Toast.LENGTH_LONG).show()
-        }
-
-        override fun onResponse(
-            call: Call<PhotoItemCollectionDao>, response: Response<PhotoItemCollectionDao>
-        ) {
-            swSwipeRefresh.isRefreshing = false
-            val toastText: String
-            if (response.isSuccessful) {
-
-                var dao: PhotoItemCollectionDao? = response.body()
-
-                var firstVisiblePosition: Int = 0
-                var c: View
-                var top: Int = 0
-
-                if (photoListManager.getCount() > 0) {
-                    firstVisiblePosition = lvPhotoItemList.firstVisiblePosition
-                    c = lvPhotoItemList.getChildAt(0)
-                    top = if (c == null) 0
-                    else c.top
-                }
-
-
-                if (mode == MODE_RELOAD_NEWER) {
-                    photoListManager.insertDaoAtTopPosition(dao!!)
-                    toastText = "RELOAD NEWER SUCCESS"
-                } else if (mode == MODE_LOAD_MORE) {
-                    photoListManager.insertDaoAtBottomPosition(dao!!)
-                    isLoadingMore = false
-                    toastText = "LODE MORE SUCCESS"
-                } else {
-                    photoListManager.dao = dao
-                    toastText = "LOAD SUCCESS"
-                }
-
-                photoListAdapter?.dao = photoListManager.dao
-                photoListAdapter?.notifyDataSetChanged()
-
-                if (mode == MODE_RELOAD_NEWER) {
-                    if (photoListManager.getCount() > 0) {
-                        var insertDaoSize: Int
-                        insertDaoSize =
-                            if (dao?.data != null && dao?.data!!.size != null) dao.data!!.size
-                            else 0
-
-                        photoListAdapter.increaseLastPosition(insertDaoSize)
-                        lvPhotoItemList.setSelectionFromTop(
-                            firstVisiblePosition + insertDaoSize,
-                            top
-                        )
-
-                        if (insertDaoSize > 0) showButtonNewPhotos()
-                    }
-                } else {
-
-                }
-
-                Toast.makeText(applicationContext, toastText, Toast.LENGTH_SHORT).show()
-
-            } else {
-                if (mode == MODE_LOAD_MORE) isLoadingMore = false
-
-                Toast.makeText(
-                    applicationContext,
-                    response.errorBody()?.string(),
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-        }
-    }
-
 
     private fun reloadData() {
 
@@ -239,7 +132,7 @@ class MainFragment : Fragment() {
         )
     }
 
-    fun showButtonNewPhotos() {
+    private fun showButtonNewPhotos() {
         btnNewPhotos.visibility = View.VISIBLE
 
         val anim = AnimationUtils.loadAnimation(
@@ -249,7 +142,7 @@ class MainFragment : Fragment() {
         btnNewPhotos.startAnimation(anim)
     }
 
-    fun hideButtonNewPhotos() {
+    private fun hideButtonNewPhotos() {
         btnNewPhotos.visibility = View.GONE
 
         val anim = AnimationUtils.loadAnimation(
@@ -257,6 +150,111 @@ class MainFragment : Fragment() {
             R.anim.anim_zoom_fade_out
         )
         btnNewPhotos.startAnimation(anim)
+    }
+
+    private val listViewScrollListener = object : AbsListView.OnScrollListener {
+        override fun onScroll(
+            view: AbsListView?,
+            firstVisibleTeam: Int,
+            visibleItemCount: Int,
+            totalItemCount: Int
+        ) {
+            swSwipeRefresh.isEnabled = firstVisibleTeam == 0
+
+            if (firstVisibleTeam + visibleItemCount >= totalItemCount) {
+                if (photoListManager.getCount() > 0) {
+                    // Load more photos
+                    loadMoreData()
+                }
+            }
+        }
+
+        override fun onScrollStateChanged(p0: AbsListView?, p1: Int) {
+
+        }
+
+    }
+
+    fun toastMessage(message: String) {
+        Toast.makeText(applicationContext , message , Toast.LENGTH_SHORT).show()
+    }
+
+    inner class PhotoListLoadCallback(
+        var mode: Int
+    ) :
+        Callback<PhotoItemCollectionDao> {
+
+        var MODE_RELOAD: Int = 1
+        var MODE_RELOAD_NEWER: Int = 2
+        var MODE_LOAD_MORE: Int = 3
+
+        override fun onFailure(call: Call<PhotoItemCollectionDao>, t: Throwable) {
+            if (mode == MODE_LOAD_MORE) isLoadingMore = false
+
+            swSwipeRefresh.isRefreshing = false
+            toastMessage(t.toString())
+        }
+
+        override fun onResponse(
+            call: Call<PhotoItemCollectionDao>, response: Response<PhotoItemCollectionDao>
+        ) {
+            swSwipeRefresh.isRefreshing = false
+            if (response.isSuccessful) {
+
+                var dao: PhotoItemCollectionDao? = response.body()
+
+                var firstVisiblePosition: Int = 0
+                var c: View
+                var top: Int = 0
+
+                if (photoListManager.getCount() > 0) {
+                    firstVisiblePosition = lvPhotoItemList.firstVisiblePosition
+                    c = lvPhotoItemList.getChildAt(0)
+                    top = if (c == null) 0
+                    else c.top
+                }
+
+
+                if (mode == MODE_RELOAD_NEWER) {
+                    photoListManager.insertDaoAtTopPosition(dao!!)
+                    toastMessage("RELOAD NEWER SUCCESS")
+                } else if (mode == MODE_LOAD_MORE) {
+                    photoListManager.insertDaoAtBottomPosition(dao!!)
+                    isLoadingMore = false
+                    toastMessage("LODE MORE SUCCESS")
+                } else {
+                    photoListManager.dao = dao
+                    toastMessage("LOAD SUCCESS")
+                }
+
+                photoListAdapter?.dao = photoListManager.dao
+                photoListAdapter?.notifyDataSetChanged()
+
+                if (mode == MODE_RELOAD_NEWER) {
+                    if (photoListManager.getCount() > 0) {
+                        var insertDaoSize: Int
+                        insertDaoSize =
+                            if (dao?.data != null && dao?.data!!.size != null) dao.data!!.size
+                            else 0
+
+                        photoListAdapter.increaseLastPosition(insertDaoSize)
+                        lvPhotoItemList.setSelectionFromTop(
+                            firstVisiblePosition + insertDaoSize,
+                            top
+                        )
+
+                        if (insertDaoSize > 0) showButtonNewPhotos()
+                    }
+                } else {
+
+                }
+
+            } else {
+                if (mode == MODE_LOAD_MORE) isLoadingMore = false
+
+                toastMessage(response.errorBody()?.string().toString())
+            }
+        }
     }
 
 }
