@@ -2,7 +2,10 @@ package com.example.androidkotlingalleryfreeapi.ui.main
 
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.BaseAdapter
+import com.example.androidkotlingalleryfreeapi.R
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemDao
 import com.example.androidkotlingalleryfreeapi.manager.PhotoListManager
@@ -10,7 +13,8 @@ import com.example.androidkotlingalleryfreeapi.view.PhotoListItem
 
 class PhotoListAdapter : BaseAdapter() {
 
-    var dao : PhotoItemCollectionDao? = null
+    var dao: PhotoItemCollectionDao? = null
+    var lastPosition = -1
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
 
@@ -24,6 +28,14 @@ class PhotoListAdapter : BaseAdapter() {
         item.setNameText(dao.caption)
         item.setDescriptionText(dao.username)
         item.setImageURL(dao.imageUrl)
+
+        val anim: Animation =
+            AnimationUtils.loadAnimation(parent?.context, R.anim.anim_up_from_buttom)
+
+        if (position > lastPosition) {
+            item.startAnimation(anim)
+            lastPosition = position
+        }
 
         return item
 

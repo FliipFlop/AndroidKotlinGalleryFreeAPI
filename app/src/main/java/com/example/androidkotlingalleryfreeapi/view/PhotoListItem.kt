@@ -52,6 +52,7 @@ class PhotoListItem @JvmOverloads constructor(
     fun setImageURL(url : String) {
         Glide.with(context)
             .load(url)
+            .placeholder(R.drawable.loading)
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(ivPhotoItem)
     }
