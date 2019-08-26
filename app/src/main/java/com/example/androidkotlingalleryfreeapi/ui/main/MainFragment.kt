@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidkotlingalleryfreeapi.R
 import com.example.androidkotlingalleryfreeapi.application.Contextor
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
@@ -20,6 +22,8 @@ import retrofit2.Response
 class MainFragment : Fragment() {
 
     private var photoListAdapter: PhotoListAdapter? = null
+    private var photoListManager: PhotoListManager? = null
+    val applicationContext: Context? = Contextor.getInstance().getContext()
 
     companion object {
         fun newInstance(): MainFragment {
@@ -50,50 +54,139 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Do anythings
+        initPhotoListManager()
         initListView()
+        initSwipeRefresh()
         initApi()
     }
 
+    private fun initPhotoListManager() {
+        photoListManager = PhotoListManager()
+    }
 
     private fun initListView() {
         photoListAdapter = PhotoListAdapter()
         lvPhotoItemList.adapter = photoListAdapter
 
-    }
 
-    private fun initApi() {
-        val applicationContext: Context? = Contextor.getInstance().getContext()
-
-        var call = HttpManager.getInstance().getService()?.loadPhotoList()
-        call?.enqueue(object : Callback<PhotoItemCollectionDao> {
-            override fun onFailure(call: Call<PhotoItemCollectionDao>, t: Throwable) {
-                Toast.makeText(applicationContext, t.toString(), Toast.LENGTH_LONG).show()
+        lvPhotoItemList.setOnScrollListener(object : AbsListView.OnScrollListener {
+            override fun onScroll(
+                view: AbsListView?,
+                firstVisibleTeam: Int,
+                visibleItemCount: Int,
+                totalItemCount: Int
+            ) {
+                swSwipeRefresh.isEnabled = firstVisibleTeam == 0
             }
 
-            override fun onResponse(
-                call: Call<PhotoItemCollectionDao>,
-                response: Response<PhotoItemCollectionDao>
-            ) {
-                if (response.isSuccessful) {
-                    var dao: PhotoItemCollectionDao? = response.body()
-                    photoListAdapter?.dao = dao
-                    photoListAdapter?.notifyDataSetChanged()
-                    Toast.makeText(
-                        applicationContext,
-                        dao?.data?.size.toString(),
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        applicationContext,
-                        response.errorBody()?.string(),
-                        Toast.LENGTH_LONG
-                    )
-                        .show()
-                }
+            override fun onScrollStateChanged(p0: AbsListView?, p1: Int) {
+
             }
 
         })
+
+    }
+
+
+    private fun initSwipeRefresh() {
+        swSwipeRefresh.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {
+            override fun onRefresh() {
+                refreshData()
+            }
+        })
+    }
+
+    private fun initApi() {
+        refreshData()
+    }
+
+    private fun refreshData() {
+        if (photoListManager!!.getCount() == 0) {
+            reloadData()
+        } else {
+            reloadDataNewer()
+        }
+    }
+
+    class PhotoListLoadCallback(
+        var swSwipeRefresh: SwipeRefreshLayout,
+        var applicationContext: Context,
+        var photoListManager: PhotoListManager,
+        var photoListAdapter: PhotoListAdapter,
+        var mode: Int
+    ) :
+        Callback<PhotoItemCollectionDao> {
+
+        var MODE_RELOAD: Int = 1
+        var MODE_RELOAD_NEWER: Int = 2
+
+        override fun onFailure(call: Call<PhotoItemCollectionDao>, t: Throwable) {
+            swSwipeRefresh.isRefreshing = false
+            Toast.makeText(applicationContext, t.toString(), Toast.LENGTH_LONG).show()
+        }
+
+        override fun onResponse(
+            call: Call<PhotoItemCollectionDao>, response: Response<PhotoItemCollectionDao>
+        ) {
+            swSwipeRefresh.isRefreshing = false
+            val toastText: String
+            if (response.isSuccessful) {
+
+                var dao: PhotoItemCollectionDao? = response.body()
+
+                if (mode == MODE_RELOAD_NEWER) {
+                    photoListManager?.insertDaoAtTopPosition(dao!!)
+                    toastText = "RELOAD NEWER SUCCESS"
+                } else {
+                    photoListManager.dao = dao
+                    toastText = "LOAD SUCCESS"
+                }
+
+                photoListAdapter?.dao = photoListManager?.dao
+                photoListAdapter?.notifyDataSetChanged()
+
+                Toast.makeText(applicationContext, toastText, Toast.LENGTH_SHORT).show()
+
+            } else {
+                Toast.makeText(
+                    applicationContext,
+                    response.errorBody()?.string(),
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }
+    }
+
+    private fun reloadDataNewer() {
+        var maxId: Int = photoListManager!!.getMaximumID()!!
+
+        var call: Call<PhotoItemCollectionDao>? =
+            HttpManager.getInstance().getService()?.loadPhotoListAfterID(maxId)
+
+        call?.enqueue(
+            PhotoListLoadCallback(
+                swSwipeRefresh,
+                applicationContext!!,
+                photoListManager!!,
+                photoListAdapter!!,
+                2
+            )
+        )
+    }
+
+    private fun reloadData() {
+
+        var call = HttpManager.getInstance().getService()?.loadPhotoList()
+        call?.enqueue(
+            PhotoListLoadCallback(
+                swSwipeRefresh,
+                applicationContext!!,
+                photoListManager!!,
+                photoListAdapter!!,
+                1
+            )
+        )
     }
 
 

@@ -3,18 +3,39 @@ package com.example.androidkotlingalleryfreeapi.manager
 import android.content.Context
 import com.example.androidkotlingalleryfreeapi.application.Contextor
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
+import com.example.androidkotlingalleryfreeapi.dao.PhotoItemDao
+import kotlin.math.max
 
-object PhotoListManager {
-
-    private var instance : PhotoListManager? = null
-
-    fun getInstance() : PhotoListManager {
-        if (instance == null) instance = PhotoListManager
-        return instance as PhotoListManager
-    }
+class PhotoListManager {
 
     private var mContext = Contextor.getInstance().getContext()
 
     var dao: PhotoItemCollectionDao? = null
 
+    fun insertDaoAtTopPosition(newDao : PhotoItemCollectionDao) {
+        if (dao == null) dao = PhotoItemCollectionDao()
+        if (dao?.data == null) dao?.data = ArrayList<PhotoItemDao>()
+
+        dao?.data?.addAll(0 , newDao.data!!)
+    }
+
+    fun getMaximumID(): Int? {
+        if (dao == null) return 0
+        if (dao!!.data == null) return 0
+        if (dao!!.data!!.isEmpty()) return 0
+
+        var maxId: Int? = dao!!.data?.get(0)?.id
+
+        for (i in 1 until dao!!.data!!.size) {
+            maxId = max(maxId!!, dao!!.data!!.get(i).id)
+        }
+        return maxId
+    }
+
+    fun getCount() : Int {
+        if (dao == null) return 0
+        if (dao!!.data == null) return 0
+
+        return dao!!.data!!.size
+    }
 }
