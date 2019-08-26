@@ -3,4 +3,5 @@
     <dimen name="dimen_drawer_width">240dp</dimen>
     <dimen name="dimen_font_title">24sp</dimen>
     <dimen name="dimen_font_description">18sp</dimen>
+    <dimen name="dimen_button_padding">16dp</dimen>
 </resources>

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.AbsListView
 import android.widget.ListView
 import android.widget.Toast
@@ -15,7 +16,7 @@ import com.example.androidkotlingalleryfreeapi.application.Contextor
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
 import com.example.androidkotlingalleryfreeapi.manager.HttpManager
 import com.example.androidkotlingalleryfreeapi.manager.PhotoListManager
-import kotlinx.android.synthetic.main.fragment_template.*
+import kotlinx.android.synthetic.main.fragment_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -49,13 +50,14 @@ class MainFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_template, container, false)
+        return inflater.inflate(R.layout.fragment_main, container, false)
     }
 
     override fun onViewCreated(rootView: View, savedInstanceState: Bundle?) {
         super.onViewCreated(rootView, savedInstanceState)
         // Do anythings
         initPhotoListManager()
+        initNewPhotosButton()
         initListView()
         initSwipeRefresh()
         initApi()
@@ -63,6 +65,13 @@ class MainFragment : Fragment() {
 
     private fun initPhotoListManager() {
         photoListManager = PhotoListManager()
+    }
+
+    private fun initNewPhotosButton() {
+        btnNewPhotos.setOnClickListener {
+            lvPhotoItemList.smoothScrollToPosition(0)
+            hideButtonNewPhotos()
+        }
     }
 
     private fun initListView() {
@@ -88,11 +97,9 @@ class MainFragment : Fragment() {
 
 
     private fun initSwipeRefresh() {
-        swSwipeRefresh.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {
-            override fun onRefresh() {
-                refreshData()
-            }
-        })
+        swSwipeRefresh.setOnRefreshListener {
+            refreshData()
+        }
     }
 
     private fun initApi() {
@@ -160,7 +167,12 @@ class MainFragment : Fragment() {
                             else 0
 
                         photoListAdapter.increaseLastPosition(insertDaoSize)
-                        lvPhotoItemList.setSelectionFromTop(firstVisiblePosition + insertDaoSize, top)
+                        lvPhotoItemList.setSelectionFromTop(
+                            firstVisiblePosition + insertDaoSize,
+                            top
+                        )
+
+                        if (insertDaoSize > 0) showButtonNewPhotos()
                     }
                 } else {
 
@@ -196,5 +208,24 @@ class MainFragment : Fragment() {
         call?.enqueue(PhotoListLoadCallback(1))
     }
 
+    fun showButtonNewPhotos() {
+        btnNewPhotos.visibility = View.VISIBLE
+
+        val anim = AnimationUtils.loadAnimation(
+            Contextor.getInstance().getContext(),
+            R.anim.anim_zoom_fade_in
+        )
+        btnNewPhotos.startAnimation(anim)
+    }
+
+    fun hideButtonNewPhotos() {
+        btnNewPhotos.visibility = View.GONE
+
+        val anim = AnimationUtils.loadAnimation(
+            Contextor.getInstance().getContext(),
+            R.anim.anim_zoom_fade_out
+        )
+        btnNewPhotos.startAnimation(anim)
+    }
 
 }
