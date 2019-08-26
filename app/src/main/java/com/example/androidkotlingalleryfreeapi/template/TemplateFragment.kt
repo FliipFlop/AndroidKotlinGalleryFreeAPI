@@ -23,8 +23,22 @@ class TemplateFragment : Fragment() {
 
         // init argument from newInstance to someVar
         // someVar = arguments.get...
+        if (savedInstanceState != null) {
+            // Restore Instance state
+            onRestoreInstanceState(savedInstanceState)
+        }
 
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        // Save Instance state
+    }
+
+    private fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // Restore Instance state
     }
 
     override fun onCreateView(

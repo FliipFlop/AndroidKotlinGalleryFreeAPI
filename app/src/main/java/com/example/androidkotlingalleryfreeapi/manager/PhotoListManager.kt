@@ -1,6 +1,6 @@
 package com.example.androidkotlingalleryfreeapi.manager
 
-import android.content.Context
+import android.os.Bundle
 import com.example.androidkotlingalleryfreeapi.application.Contextor
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemDao
@@ -13,18 +13,18 @@ class PhotoListManager {
 
     var dao: PhotoItemCollectionDao? = null
 
-    fun insertDaoAtTopPosition(newDao : PhotoItemCollectionDao) {
+    fun insertDaoAtTopPosition(newDao: PhotoItemCollectionDao) {
         if (dao == null) dao = PhotoItemCollectionDao()
         if (dao?.data == null) dao?.data = ArrayList<PhotoItemDao>()
 
-        dao?.data?.addAll(0 , newDao.data!!)
+        dao?.data?.addAll(0, newDao.data!!)
     }
 
     fun insertDaoAtBottomPosition(newDao: PhotoItemCollectionDao) {
         if (dao == null) dao = PhotoItemCollectionDao()
         if (dao?.data == null) dao?.data = ArrayList<PhotoItemDao>()
 
-        dao?.data?.addAll(newDao.data!!.size , newDao.data!!)
+        dao?.data?.addAll(newDao.data!!.size, newDao.data!!)
     }
 
     fun getMaximumID(): Int? {
@@ -53,11 +53,23 @@ class PhotoListManager {
         return minId
     }
 
-    fun getCount() : Int {
+    fun getCount(): Int {
         if (dao == null) return 0
         if (dao!!.data == null) return 0
 
         return dao!!.data!!.size
+    }
+
+    fun onSaveInstanceState(): Bundle? {
+        var bundle: Bundle = Bundle()
+        bundle.putParcelable("dao", dao)
+        return bundle
+    }
+
+    fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            dao = savedInstanceState.getParcelable("dao")
+        }
     }
 
 }

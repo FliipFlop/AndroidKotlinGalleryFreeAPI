@@ -41,8 +41,26 @@ class MainFragment : Fragment() {
 
         // init argument from newInstance to someVar
         // someVar = arguments.get...
+        initPhotoListManager()
+
+        if (savedInstanceState != null) {
+            // Restore Instance state
+            onRestoreInstanceState(savedInstanceState)
+        }
 
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        // Save Instance state
+        outState.putBundle("photoListManager", photoListManager.onSaveInstanceState())
+    }
+
+    private fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // Restore Instance state
+        photoListManager.onRestoreInstanceState(savedInstanceState.getBundle("photoListManager"))
     }
 
     override fun onCreateView(
@@ -56,15 +74,11 @@ class MainFragment : Fragment() {
     override fun onViewCreated(rootView: View, savedInstanceState: Bundle?) {
         super.onViewCreated(rootView, savedInstanceState)
         // Do anythings
-        initPhotoListManager()
+
         initNewPhotosButton()
         initListView()
         initSwipeRefresh()
-        initApi()
-    }
-
-    private fun initPhotoListManager() {
-        photoListManager = PhotoListManager()
+        initApi(savedInstanceState)
     }
 
     private fun initNewPhotosButton() {
@@ -74,8 +88,13 @@ class MainFragment : Fragment() {
         }
     }
 
+    private fun initPhotoListManager() {
+        photoListManager = PhotoListManager()
+    }
+
     private fun initListView() {
         photoListAdapter = PhotoListAdapter()
+        photoListAdapter.dao = photoListManager.dao
 
         lvPhotoItemList.adapter = photoListAdapter
 
@@ -89,8 +108,10 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun initApi() {
-        refreshData()
+    private fun initApi(savedInstanceState: Bundle?) {
+        if (savedInstanceState == null) {
+            refreshData()
+        }
     }
 
     private fun refreshData() {
@@ -176,7 +197,7 @@ class MainFragment : Fragment() {
     }
 
     fun toastMessage(message: String) {
-        Toast.makeText(applicationContext , message , Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
     }
 
     inner class PhotoListLoadCallback(
