@@ -12,10 +12,10 @@ import com.example.androidkotlingalleryfreeapi.dao.PhotoItemDao
 import com.example.androidkotlingalleryfreeapi.manager.PhotoListManager
 import com.example.androidkotlingalleryfreeapi.view.PhotoListItem
 
-class PhotoListAdapter : BaseAdapter() {
+class PhotoListAdapter(lastPositionInt: MutableInteger) : BaseAdapter() {
 
     var dao: PhotoItemCollectionDao? = null
-    var lastPosition = -1
+    var lastPositionInt: MutableInteger = lastPositionInt
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
 
@@ -41,9 +41,9 @@ class PhotoListAdapter : BaseAdapter() {
         val anim: Animation =
             AnimationUtils.loadAnimation(parent?.context, R.anim.anim_up_from_buttom)
 
-        if (position > lastPosition) {
+        if (position > lastPositionInt.value) {
             item.startAnimation(anim)
-            lastPosition = position
+            lastPositionInt.value = position
         }
 
         return item
@@ -75,6 +75,6 @@ class PhotoListAdapter : BaseAdapter() {
     }
 
     fun increaseLastPosition(amount: Int) {
-        lastPosition += amount
+        lastPositionInt.value = lastPositionInt.value + amount
     }
 }

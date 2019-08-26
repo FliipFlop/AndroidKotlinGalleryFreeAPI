@@ -25,6 +25,8 @@ class MainFragment : Fragment() {
     private lateinit var photoListManager: PhotoListManager
     val applicationContext: Context? = Contextor.getInstance().getContext()
 
+    private lateinit var lastPositionInt: MutableInteger
+
     var isLoadingMore: Boolean = false
 
     companion object {
@@ -42,6 +44,7 @@ class MainFragment : Fragment() {
         // init argument from newInstance to someVar
         // someVar = arguments.get...
         initPhotoListManager()
+        initLastPosition()
 
         if (savedInstanceState != null) {
             // Restore Instance state
@@ -56,11 +59,13 @@ class MainFragment : Fragment() {
 
         // Save Instance state
         outState.putBundle("photoListManager", photoListManager.onSaveInstanceState())
+        outState.putBundle("lastPositionInt", lastPositionInt.onSaveInstanceState())
     }
 
     private fun onRestoreInstanceState(savedInstanceState: Bundle) {
         // Restore Instance state
         photoListManager.onRestoreInstanceState(savedInstanceState.getBundle("photoListManager"))
+        lastPositionInt.onRestoreInstanceState(savedInstanceState.getBundle("lastPositionInt"))
     }
 
     override fun onCreateView(
@@ -81,6 +86,15 @@ class MainFragment : Fragment() {
         initApi(savedInstanceState)
     }
 
+    private fun initPhotoListManager() {
+        photoListManager = PhotoListManager()
+    }
+
+
+    private fun initLastPosition() {
+        lastPositionInt = MutableInteger(-1)
+    }
+
     private fun initNewPhotosButton() {
         btnNewPhotos.setOnClickListener {
             lvPhotoItemList.smoothScrollToPosition(0)
@@ -88,12 +102,8 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun initPhotoListManager() {
-        photoListManager = PhotoListManager()
-    }
-
     private fun initListView() {
-        photoListAdapter = PhotoListAdapter()
+        photoListAdapter = PhotoListAdapter(lastPositionInt)
         photoListAdapter.dao = photoListManager.dao
 
         lvPhotoItemList.adapter = photoListAdapter
