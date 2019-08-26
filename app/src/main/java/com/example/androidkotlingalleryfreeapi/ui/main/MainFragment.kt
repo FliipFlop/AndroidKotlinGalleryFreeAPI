@@ -58,6 +58,7 @@ class MainFragment : Fragment() {
     private fun initListView() {
         photoListAdapter = PhotoListAdapter()
         lvPhotoItemList.adapter = photoListAdapter
+
     }
 
     private fun initApi() {
@@ -75,11 +76,19 @@ class MainFragment : Fragment() {
             ) {
                 if (response.isSuccessful) {
                     var dao: PhotoItemCollectionDao? = response.body()
-                    PhotoListManager.getInstance().dao = dao
+                    photoListAdapter?.dao = dao
                     photoListAdapter?.notifyDataSetChanged()
-                    Toast.makeText(applicationContext, dao?.data?.size.toString() , Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        applicationContext,
+                        dao?.data?.size.toString(),
+                        Toast.LENGTH_LONG
+                    ).show()
                 } else {
-                    Toast.makeText(applicationContext, response.errorBody()?.string(), Toast.LENGTH_LONG)
+                    Toast.makeText(
+                        applicationContext,
+                        response.errorBody()?.string(),
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                 }
             }

@@ -3,11 +3,15 @@ package com.example.androidkotlingalleryfreeapi.ui.main
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import com.example.androidkotlingalleryfreeapi.dao.PhotoItemCollectionDao
 import com.example.androidkotlingalleryfreeapi.dao.PhotoItemDao
 import com.example.androidkotlingalleryfreeapi.manager.PhotoListManager
 import com.example.androidkotlingalleryfreeapi.view.PhotoListItem
 
 class PhotoListAdapter : BaseAdapter() {
+
+    var dao : PhotoItemCollectionDao? = null
+
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
 
         var item: PhotoListItem
@@ -27,7 +31,7 @@ class PhotoListAdapter : BaseAdapter() {
 
 
     override fun getItem(position: Int): Any? {
-        return PhotoListManager.getInstance().dao?.data?.get(position)
+        return dao?.data?.get(position)
     }
 
     override fun getItemId(p0: Int): Long {
@@ -35,8 +39,8 @@ class PhotoListAdapter : BaseAdapter() {
     }
 
     override fun getCount(): Int {
-        if (PhotoListManager.getInstance().dao == null) return 0
-        if (PhotoListManager.getInstance().dao?.data == null) return 0
-        return PhotoListManager.getInstance().dao?.data?.size!!
+        if (dao == null) return 0
+        if (dao?.data == null) return 0
+        return dao?.data?.size!!
     }
 }

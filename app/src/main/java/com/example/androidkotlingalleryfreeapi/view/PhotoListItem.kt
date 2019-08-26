@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.androidkotlingalleryfreeapi.R
 import kotlinx.android.synthetic.main.item_photo.view.*
 
@@ -49,6 +50,9 @@ class PhotoListItem @JvmOverloads constructor(
     }
 
     fun setImageURL(url : String) {
-        Glide.with(context).load(url).into(ivPhotoItem)
+        Glide.with(context)
+            .load(url)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .into(ivPhotoItem)
     }
 }
